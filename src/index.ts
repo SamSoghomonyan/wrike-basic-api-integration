@@ -3,11 +3,36 @@ import fs from "fs/promises";
 dotenv.config();
 
 const Task_URL = "https://www.wrike.com/api/v4/tasks";
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
-const task_id: string[] = [];
-const Global_Tasks: any[] = [];
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN as string;
 
-const fetchTasksId = async () => {
+if (!ACCESS_TOKEN) {
+  throw new Error("ACCESS_TOKEN is not defined in the environment variables.");
+}
+
+interface Task {
+  id: string;
+  name: string;
+  status: string;
+  collections: string;
+  created_at: string;
+  updated_at: string;
+  tiket_url: string;
+  assignees: Assignee[];
+}
+
+interface Assignee {
+  name: string;
+  surname: string;
+}
+
+interface ApiResponse<T> {
+  data: T;
+}
+
+const task_id: string[] = [];
+const Global_Tasks: Task[] = [];
+
+const fetchTasksId = async (): Promise<void> => {
   try {
     const response = await fetch(Task_URL, {
       method: "GET",
@@ -17,19 +42,19 @@ const fetchTasksId = async () => {
       },
     });
 
-    const data = await response.json();
+    const data: ApiResponse<{ id: string }[]> = await response.json();
 
     if (!data.data || !Array.isArray(data.data)) {
       throw new Error("Invalid API response: No data found.");
     }
 
-    data.data.forEach((task: any) => task_id.push(task.id));
+    data.data.forEach((task) => task_id.push(task.id));
   } catch (error) {
     console.error("Error fetching task IDs:", error);
   }
 };
 
-const fetchTasks = async () => {
+const fetchTasks = async (): Promise<void> => {
   try {
     console.log("Task IDs:", task_id);
 
@@ -38,23 +63,20 @@ const fetchTasks = async () => {
       return;
     }
 
-    const tasks = await Promise.all(
-      task_id.map(async (taskId: string) => {
-        const response = await fetch(
-          `https://www.wrike.com/api/v4/tasks/${taskId}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${ACCESS_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+    await Promise.all(
+      task_id.map(async (taskId) => {
+        const response = await fetch(`${Task_URL}/${taskId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-        const data = await response.json();
+        const data: ApiResponse<any[]> = await response.json();
         const single_data = data.data[0];
 
-        const assignees = await Promise.all(
+        const assignees: Assignee[] = await Promise.all(
           single_data.responsibleIds.map(async (userId: string) => {
             const userResponse = await fetch(
               `https://www.wrike.com/api/v4/users/${userId}`,
@@ -67,7 +89,7 @@ const fetchTasks = async () => {
               }
             );
 
-            const userData = await userResponse.json();
+            const userData: ApiResponse<any[]> = await userResponse.json();
             const user = userData.data[0];
 
             return {
@@ -89,14 +111,12 @@ const fetchTasks = async () => {
         });
       })
     );
-
-    return tasks;
   } catch (error) {
     console.error("Error fetching tasks:", error);
   }
 };
 
-const saveTasksToFile = async () => {
+const saveTasksToFile = async (): Promise<void> => {
   try {
     await fs.writeFile("tasks.json", JSON.stringify(Global_Tasks, null, 2));
     console.log("Tasks saved to tasks.json");
@@ -105,7 +125,7 @@ const saveTasksToFile = async () => {
   }
 };
 
-const run = async () => {
+const run = async (): Promise<void> => {
   await fetchTasksId();
   await fetchTasks();
   await saveTasksToFile();
