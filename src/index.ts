@@ -1,72 +1,114 @@
 import dotenv from "dotenv";
-import axios from "axios";
-import express, { Request, Response } from "express";
-import fs from "fs";
-
+import fs from "fs/promises";
 dotenv.config();
 
-const app = express();
-app.use(express.json());
+const Task_URL = "https://www.wrike.com/api/v4/tasks";
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+const task_id: string[] = [];
+const Global_Tasks: any[] = [];
 
-const PORT = process.env.PORT;
-const API_URL = process.env.API_URL;
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || "";
-console.log("API_URL", API_URL);
-if (!API_URL || !ACCESS_TOKEN) {
-  console.error(
-    "API_URL or ACCESS_TOKEN is not defined in environment variables"
-  );
-  process.exit(1);
-}
-
-interface Task {
-  id: string;
-  title: string;
-  responsibles: string[];
-  status: string;
-  parentIds: string[];
-  createdDate: string;
-  updatedDate: string;
-  permalink: string;
-}
-
-interface MappedTask {
-  id: string;
-  name: string;
-  assignees: string[];
-  status: string;
-  collections: string[];
-  created_at: string;
-  updated_at: string;
-  ticket_url: string;
-}
-
-app.get("/tasks", async (req: Request, res: Response): Promise<void> => {
+const fetchTasksId = async () => {
   try {
-    const response = await axios.get<{ data: Task[] }>(API_URL, {
-      headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+    const response = await fetch(Task_URL, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
     });
 
-    const tasks: MappedTask[] = response.data.data.map((task) => ({
-      id: task.id,
-      name: task.title,
-      assignees: task.responsibles,
-      status: task.status,
-      collections: task.parentIds,
-      created_at: task.createdDate,
-      updated_at: task.updatedDate,
-      ticket_url: task.permalink,
-    }));
+    const data = await response.json();
 
-    fs.writeFileSync("tasks.json", JSON.stringify(tasks, null, 2));
-    console.log("tasks.json file generated successfully!");
-    res.json(tasks);
+    if (!data.data || !Array.isArray(data.data)) {
+      throw new Error("Invalid API response: No data found.");
+    }
+
+    data.data.forEach((task: any) => task_id.push(task.id));
+  } catch (error) {
+    console.error("Error fetching task IDs:", error);
+  }
+};
+
+const fetchTasks = async () => {
+  try {
+    console.log("Task IDs:", task_id);
+
+    if (task_id.length === 0) {
+      console.error("No task IDs found! Exiting...");
+      return;
+    }
+
+    const tasks = await Promise.all(
+      task_id.map(async (taskId: string) => {
+        const response = await fetch(
+          `https://www.wrike.com/api/v4/tasks/${taskId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${ACCESS_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+        const single_data = data.data[0];
+
+        const assignees = await Promise.all(
+          single_data.responsibleIds.map(async (userId: string) => {
+            const userResponse = await fetch(
+              `https://www.wrike.com/api/v4/users/${userId}`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${ACCESS_TOKEN}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            const userData = await userResponse.json();
+            const user = userData.data[0];
+
+            return {
+              name: user.firstName,
+              surname: user.lastName,
+            };
+          })
+        );
+
+        Global_Tasks.push({
+          id: single_data.id,
+          name: single_data.title,
+          status: single_data.status,
+          collections: single_data.parentIds[0],
+          created_at: single_data.createdDate,
+          updated_at: single_data.updatedDate,
+          tiket_url: single_data.permalink,
+          assignees: assignees,
+        });
+      })
+    );
+
+    return tasks;
   } catch (error) {
     console.error("Error fetching tasks:", error);
-    res.status(500).send("Error fetching tasks");
   }
-});
+};
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const saveTasksToFile = async () => {
+  try {
+    await fs.writeFile("tasks.json", JSON.stringify(Global_Tasks, null, 2));
+    console.log("Tasks saved to tasks.json");
+  } catch (error) {
+    console.error("Error saving tasks to file:", error);
+  }
+};
+
+const run = async () => {
+  await fetchTasksId();
+  await fetchTasks();
+  await saveTasksToFile();
+};
+
+run();
