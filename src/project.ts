@@ -56,14 +56,14 @@ async function getProjectInfo() {
         },
       }));
 
-    await saveProjectToFile("project.json", JSON.stringify(projects, null, 2));
+    await saveToFile("project.json", JSON.stringify(projects, null, 2));
     console.log("Projects saved to project.json successfully!");
   } catch (error) {
     console.error("Error fetching project data:", error);
   }
 }
 
-async function saveProjectToFile(
+async function saveToFile(
   filePath: string,
   content: string,
   encoding: BufferEncoding = "utf-8"
