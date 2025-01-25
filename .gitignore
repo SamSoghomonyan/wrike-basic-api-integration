@@ -1,6 +1,8 @@
+.idea
 .env
 node_modules/
 dist/
 *.log
-.codegpt
 tasks.json
+users.json
+project.json
