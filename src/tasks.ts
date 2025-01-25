@@ -81,7 +81,7 @@ async function getTasks(): Promise<void> {
   }
 }
 
-function saveTasksToFile(
+ async function saveTasksToFile(
   filePath: string,
   content: string,
   encoding: BufferEncoding = "utf-8"

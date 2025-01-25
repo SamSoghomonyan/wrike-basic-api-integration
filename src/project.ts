@@ -64,7 +64,7 @@ async function getProjectInfo() {
   }
 }
 
-function saveProjectData(
+async function saveProjectData(
   filePath: string,
   content: string,
   encoding: BufferEncoding = "utf-8"
