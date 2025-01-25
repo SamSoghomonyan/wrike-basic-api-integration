@@ -1,5 +1,5 @@
-import getTasks from "./tasks";
-import getUsers from "./users";
+import getTasks from "./src/tasks";
+import getUsers from "./src/users";
 async function run(): Promise<void> {
   await getTasks();
   await getUsers();
