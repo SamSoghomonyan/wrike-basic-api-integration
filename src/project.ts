@@ -43,7 +43,6 @@ async function getProjectInfo() {
     }
 
     const data: { data: Data[] } = await response.json();
-    // Filter and map projects with `project` field
     const projects: Project[] = data.data
       .filter((item) => item.project)
       .map((item) => ({
