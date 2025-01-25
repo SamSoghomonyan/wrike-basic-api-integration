@@ -11,13 +11,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/dotenv": "^6.1.1",
-    "axios": "^1.7.9",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "fs": "^0.0.1-security"
+    "dotenv": "^16.4.7"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/axios": "^0.9.36",
     "@types/express": "^5.0.0",
     "@types/fs-extra": "^11.0.4",

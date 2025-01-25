@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 import fs from "fs";
-import getUsers from "./users";
 
 dotenv.config();
 
@@ -98,9 +97,4 @@ function writeFileExample(
   });
 }
 
-async function run(): Promise<void> {
-  await getTasks();
-  await getUsers();
-}
-
-run();
+export default getTasks;
