@@ -75,13 +75,13 @@ async function getTasks(): Promise<void> {
       };
     });
 
-    await writeFileExample("tasks.json", JSON.stringify(tasks, null, 2));
+    await saveTasksToFile("tasks.json", JSON.stringify(tasks, null, 2));
   } catch (err) {
     console.error("Error fetching tasks:", err);
   }
 }
 
-function writeFileExample(
+function saveTasksToFile(
   filePath: string,
   content: string,
   encoding: BufferEncoding = "utf-8"
@@ -96,7 +96,5 @@ function writeFileExample(
     });
   });
 }
-
-
 
 export default getTasks;
