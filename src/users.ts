@@ -62,8 +62,4 @@ async function wrteFileExample(
   });
 }
 
-async function runUsers() {
-  await getUsers();
-}
-
-export default runUsers;
+export default getUsers;
