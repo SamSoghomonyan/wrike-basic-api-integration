@@ -33,7 +33,7 @@ async function getUsers() {
     },
   });
   const data: { data: Data[] } = await response.json();
-  console.log("users", data.data);
+  // console.log("users", data.data);
   const users: User[] = data.data.map((user) => {
     return {
       id: user.id,
@@ -43,7 +43,7 @@ async function getUsers() {
     };
   });
   await wrteFileExample("users.json", JSON.stringify(users, null, 2));
-  console.log("users", users);
+  // console.log("users", users);
 }
 
 async function wrteFileExample(
