@@ -41,10 +41,10 @@ async function getUsers() {
       primaryEmail: user.primaryEmail,
     };
   });
-  await wrteFileExample("users.json", JSON.stringify(users, null, 2));
+  await saveToFile("users.json", JSON.stringify(users, null, 2));
 }
 
-async function wrteFileExample(
+async function saveToFile(
   filpath: string,
   content: string,
   encoding: BufferEncoding = "utf-8"
