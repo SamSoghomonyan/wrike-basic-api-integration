@@ -9,12 +9,10 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 interface Project {
   id: string;
   title: string;
-  project: {
-    authorId: string;
-    ownerIds: string[];
-    customStatusId: string;
-    createdDate: string;
-  };
+  authorId: string;
+  ownerIds: string[];
+  customStatusId: string;
+  createdDate: string;
 }
 
 interface Data {
@@ -48,35 +46,16 @@ async function getProjectInfo() {
       .map((item) => ({
         id: item.id,
         title: item.title,
-        project: {
-          authorId: item.project!.authorId,
-          ownerIds: item.project!.ownerIds,
-          customStatusId: item.project!.customStatusId,
-          createdDate: item.project!.createdDate,
-        },
+        authorId: item.project!.authorId,
+        ownerIds: item.project!.ownerIds,
+        customStatusId: item.project!.customStatusId,
+        createdDate: item.project!.createdDate,
       }));
-
-    await saveToFile("project.json", JSON.stringify(projects, null, 2));
+    return projects;
     console.log("Projects saved to project.json successfully!");
   } catch (error) {
     console.error("Error fetching project data:", error);
   }
-}
-
-async function saveToFile(
-  filePath: string,
-  content: string,
-  encoding: BufferEncoding = "utf-8"
-): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    fs.writeFile(filePath, content, encoding, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
 }
 
 export default getProjectInfo;

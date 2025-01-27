@@ -41,7 +41,7 @@ async function getUsers() {
       primaryEmail: user.primaryEmail,
     };
   });
-  await saveToFile("users.json", JSON.stringify(users, null, 2));
+  return users;
 }
 
 async function saveToFile(

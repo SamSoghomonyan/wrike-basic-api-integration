@@ -39,7 +39,7 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const TASKS_URL: string =
   'https://www.wrike.com/api/v4/tasks?fields=["responsibleIds","parentIds"]';
 
-async function getTasks(): Promise<void> {
+async function getTasks() {
   try {
     if (!ACCESS_TOKEN) {
       throw new Error(
@@ -74,27 +74,12 @@ async function getTasks(): Promise<void> {
         tiket_url: task.permalink,
       };
     });
-
-    await saveTasksToFile("tasks.json", JSON.stringify(tasks, null, 2));
+    return tasks;
   } catch (err) {
     console.error("Error fetching tasks:", err);
   }
 }
 
- async function saveTasksToFile(
-  filePath: string,
-  content: string,
-  encoding: BufferEncoding = "utf-8"
-): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    fs.writeFile(filePath, content, encoding, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
+
 
 export default getTasks;
