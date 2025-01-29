@@ -5,7 +5,7 @@ import { Task } from "./interfaces";
 const TASKS_URL: string =
   'https://www.wrike.com/api/v4/tasks?fields=["responsibleIds","parentIds"]';
 
-async function getTasks() {
+export async function getTasks() {
   const response: TasksResponse = await fetchData(TASKS_URL);
   const data = response.data;
 
@@ -23,5 +23,3 @@ async function getTasks() {
   });
   return tasks;
 }
-
-export default getTasks;
