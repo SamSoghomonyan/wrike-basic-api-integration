@@ -8,7 +8,6 @@ async function run() {
   const tasks = await getTasks();
   const projects = await getProjectInfo();
   const users = await getUsers();
-  await getUsers();
   const result = projects.reduce<Data[]>((acc, project) => {
     const projectTasks = tasks?.filter((task) =>
       task.collections?.includes(project.id)
@@ -25,6 +24,7 @@ async function run() {
               name: assignee.name,
               surname: assignee.surname,
               id: assignee.id,
+              primaryEmail: assignee.primaryEmail,
             };
           }
         });
