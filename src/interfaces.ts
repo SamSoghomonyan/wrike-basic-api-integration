@@ -109,6 +109,7 @@ interface assignees {
   name: string;
   surname: string;
   id: string;
+  primaryEmail: string;
 }
 
 interface dataTasks {
