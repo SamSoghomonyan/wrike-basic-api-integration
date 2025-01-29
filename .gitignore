@@ -3,6 +3,4 @@
 node_modules/
 dist/
 *.log
-tasks.json
-users.json
-project.json
+data.json
