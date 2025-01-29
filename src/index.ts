@@ -1,60 +1,49 @@
-import getTasks from "./tasks";
-import getUsers from "./users";
-import getProjectInfo from "./project";
-import fs from "fs";
-async function run() {
-  return {
-    tasks: (await getTasks()) || [],
-    project: (await getProjectInfo()) || [],
-    users: (await getUsers()) || [],
-  };
-}
+import { getTasks } from "./tasks";
+import { getUsers } from "./users";
+import { getProjectInfo } from "./project";
+import { saveToFile } from "./writeFileUtils";
+import { Data } from "./interfaces";
 
-async function main() {
-  const collectData = await run();
-  const newData = collectData.project.map((project) => {
-    const relatedTasks = collectData.tasks.filter(
-      (task) => project.id === task.collections[0]
+async function run() {
+  const tasks = await getTasks();
+  const projects = await getProjectInfo();
+  const users = await getUsers();
+  await getUsers();
+  const result = projects.reduce<Data[]>((acc, project) => {
+    const projectTasks = tasks?.filter((task) =>
+      task.collections?.includes(project.id)
     );
-    console.log(relatedTasks);
-    const tasksNew = relatedTasks.map((task) => {
-      const assignees = task.assignees.map((assagnees) =>
-        collectData.users.find((user) => user.id === assagnees)
-      );
-      return {
-        id: project.id,
-        title: project.title,
-        tasks: {
+    const projectData: Data = {
+      id: project.id,
+      title: project.title,
+      tasks: projectTasks?.map((task) => {
+        const assignees = task.assignees?.map((assigneeId) => {
+          const assignee = users.find((user) => user.id === assigneeId);
+
+          if (assignee) {
+            return {
+              name: assignee.name,
+              surname: assignee.surname,
+              id: assignee.id,
+            };
+          }
+        });
+
+        return {
           id: task.id,
           name: task.name,
-          assignees: assignees,
           status: task.status,
+          assignees: assignees,
           created_at: task.created_at,
           updated_at: task.updated_at,
-        },
-      };
-    });
-
-    return tasksNew;
-  });
-  await saveToFile("data.json", JSON.stringify(newData, null, 2));
-  return newData;
+          tiket_url: task.tiket_url,
+        };
+      }),
+    };
+    acc.push(projectData);
+    return acc;
+  }, []);
+  await saveToFile("data.json", JSON.stringify(result, null, 2));
 }
 
-async function saveToFile(
-  filpath: string,
-  content: string,
-  encoding: BufferEncoding = "utf-8"
-): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    fs.writeFile(filpath, content, encoding, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-main();
+run().catch(console.error);
